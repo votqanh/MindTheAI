@@ -1,0 +1,225 @@
+/* overlay.css — MindTheAI v2 injected styles */
+
+/* ────────── Water Banner (non-blocking tooltip) ────────── */
+#mindtheai-water-banner {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.mindtheai-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(14, 22, 40, 0.97);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.08);
+  backdrop-filter: blur(20px);
+  flex-wrap: wrap;
+}
+
+.mindtheai-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mindtheai-banner-drop {
+  font-size: 20px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7));
+}
+
+.mindtheai-banner-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.mindtheai-banner-title strong {
+  color: #38bdf8;
+}
+
+.mindtheai-banner-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+.mindtheai-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mindtheai-banner-actions button {
+  padding: 6px 13px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+#mindtheai-google-btn {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: white;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.35);
+}
+
+#mindtheai-google-btn:hover {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+}
+
+#mindtheai-dismiss-btn {
+  background: rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#mindtheai-dismiss-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+#mindtheai-close-btn {
+  background: transparent;
+  color: #475569;
+  padding: 6px 8px !important;
+  font-size: 14px !important;
+}
+
+#mindtheai-close-btn:hover {
+  color: #94a3b8;
+}
+
+.mindtheai-banner-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 14px 6px;
+}
+
+.mindtheai-banner-check input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  accent-color: #0ea5e9;
+}
+
+/* ────────── Privacy Tooltip ────────── */
+.mindtheai-tooltip {
+  z-index: 2147483646;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: mindtheai-fadeIn 0.15s ease;
+}
+
+.mindtheai-tooltip-inner {
+  background: #1e293b;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  padding: 12px 14px;
+  max-width: 280px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.mindtheai-tooltip-inner::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  background: #1e293b;
+  border-right: 1px solid rgba(239, 68, 68, 0.4);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.4);
+  transform: rotate(45deg);
+}
+
+.mindtheai-tooltip-icon {
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.mindtheai-tooltip-text {
+  font-size: 12px;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.mindtheai-tooltip-text strong {
+  color: #fca5a5;
+  font-weight: 600;
+}
+
+.mindtheai-tooltip-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.mindtheai-tip-yes,
+.mindtheai-tip-no {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.mindtheai-tip-yes {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mindtheai-tip-yes:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #e2e8f0;
+}
+
+.mindtheai-tip-no {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.mindtheai-tip-no:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fecaca;
+}
+
+/* ────────── Mirror overlay for privacy highlights ────────── */
+.mindtheai-mirror {
+  pointer-events: none !important;
+}
+
+.mindtheai-sensitive-highlight {
+  background: rgba(239, 68, 68, 0.3) !important;
+  border-radius: 3px !important;
+  color: transparent !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.5);
+}
+
+/* ────────── Animations ────────── */
+@keyframes mindtheai-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
