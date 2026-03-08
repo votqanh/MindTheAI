@@ -31,13 +31,13 @@ function WaterBackground() {
           key={i}
           style={{
             position: 'absolute',
-            left: `${10 + i * 13}%`,
+            left: `${12 + i * 12}%`,
             top: '-60px',
-            width: '2px',
-            height: '18px',
+            width: '1.5px',
+            height: '14px',
             borderRadius: '100px',
-            background: `rgba(56,189,248,${0.06 + (i % 3) * 0.03})`,
-            animation: `dropFall ${3.5 + i * 0.7}s linear ${i * 0.9}s infinite`,
+            background: `rgba(34,211,238,${0.04 + (i % 3) * 0.02})`,
+            animation: `dropFall ${4 + i * 0.8}s linear ${i * 1.1}s infinite`,
           }}
         />
       ))}
@@ -46,93 +46,118 @@ function WaterBackground() {
 }
 
 export default function HomePage() {
-  const [stats, setStats] = useState<{ savedMl: number; usedMl: number } | null>(null);
+  const [stats, setStats] = useState<{ savedMl: number; usedMl: number; googleRedirects: number } | null>(null);
   const savedDisplay = useCountUp(stats?.savedMl ?? 0);
 
   useEffect(() => {
     getAllStats().then((s) =>
-      setStats({ savedMl: s.waterStats.waterSavedMl, usedMl: s.waterStats.waterUsedMl })
+      setStats({ 
+        savedMl: s.waterStats.waterSavedMl, 
+        usedMl: s.waterStats.waterUsedMl,
+        googleRedirects: s.waterStats.googleRedirects
+      })
     );
   }, []);
 
-  const cups = ((stats?.savedMl ?? 897) / 240).toFixed(1);
+  const cups = ((stats?.savedMl ?? 0) / 240).toFixed(1);
 
   return (
     <div
       className="relative min-h-screen flex flex-col"
       style={{ 
-        background: 'radial-gradient(circle at 120% -20%, #172554 0%, #020617 70%)',
         color: '#f8fafc' 
       }}
     >
+      {/* Nature background image */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/nature-bg.png"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center 30%',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Dark overlay for readability */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,22,40,0.4) 0%, rgba(11,22,40,0.55) 50%, rgba(11,22,40,0.85) 100%)',
+          zIndex: 1,
+          pointerEvents: 'none',
+        }}
+      />
       {/* Drop fall keyframe injected inline */}
       <style>{`
         @keyframes dropFall {
           0%   { transform: translateY(0); opacity: 0; }
-          10%  { opacity: 1; }
-          90%  { opacity: 0.5; }
+          10%  { opacity: 0.8; }
+          90%  { opacity: 0.3; }
           100% { transform: translateY(110vh); opacity: 0; }
         }
-        @keyframes breathe {
-          0%, 100% { transform: scale(1); filter: brightness(1); }
-          50%       { transform: scale(1.04); filter: brightness(1.12); }
-        }
         @keyframes floatDrop {
-          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-          50%       { transform: translateY(-20px) rotate(2deg) scale(1.05); }
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50%       { transform: translateY(-14px) scale(1.02); }
         }
         @keyframes glowPulse {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50%       { opacity: 0.7; transform: scale(1.2); }
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50%       { opacity: 0.45; transform: scale(1.1); }
         }
         @keyframes drip {
           0%   { transform: translateY(0px) scaleY(1); }
-          40%  { transform: translateY(6px) scaleY(0.96); }
-          60%  { transform: translateY(10px) scaleY(0.92); }
-          80%  { transform: translateY(6px) scaleY(0.97); }
+          40%  { transform: translateY(4px) scaleY(0.97); }
+          60%  { transform: translateY(7px) scaleY(0.94); }
+          80%  { transform: translateY(4px) scaleY(0.97); }
           100% { transform: translateY(0px) scaleY(1); }
         }
       `}</style>
 
-      <WaterBackground />
 
       {/* ── Hero: full-height centred ── */}
       <section
         className="relative flex flex-col items-center justify-center text-center"
-        style={{ minHeight: '100vh', padding: '80px 40px 60px' }}
+        style={{ minHeight: '100vh', padding: '80px 40px 60px', position: 'relative', zIndex: 2 }}
       >
         {/* Water droplet image with cool float & glow animation */}
         <div
           style={{
             position: 'relative',
-            width: 180,
-            height: 180,
+            width: 160,
+            height: 160,
             marginBottom: 48,
-            animation: 'floatDrop 4s ease-in-out infinite',
+            animation: 'floatDrop 5s ease-in-out infinite',
           }}
         >
-          {/* Ambient glow behind the droplet */}
+          {/* Subtle ambient glow */}
           <div
             style={{
               position: 'absolute',
-              inset: -20,
-              background: 'radial-gradient(circle, rgba(56,189,248,0.4) 0%, transparent 70%)',
-              animation: 'glowPulse 4s ease-in-out infinite',
+              inset: -16,
+              background: 'radial-gradient(circle, rgba(34,211,238,0.2) 0%, transparent 65%)',
+              animation: 'glowPulse 5s ease-in-out infinite',
               zIndex: 0,
               borderRadius: '50%',
             }}
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/water-drop.png"
-            alt="Water Droplet"
+            src="/water-logo.svg"
+            alt="MindTheAI Water Droplet"
             style={{
               position: 'relative',
               width: '100%',
               height: '100%',
               objectFit: 'contain',
-              mixBlendMode: 'screen',
               zIndex: 1,
+              filter: 'drop-shadow(0 0 16px rgba(34,211,238,0.3))',
             }}
           />
         </div>
@@ -145,14 +170,14 @@ export default function HomePage() {
               fontWeight: 800,
               letterSpacing: '-3px',
               lineHeight: 1,
-              background: 'linear-gradient(160deg, #bfdbfe 10%, #38bdf8 55%, #0ea5e9 100%)',
+              background: 'linear-gradient(160deg, #a5f3fc 10%, #22d3ee 55%, #0891b2 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
               display: 'block',
             }}
           >
-            {formatWater(savedDisplay || 897).split(' ')[0]}
+            {formatWater(savedDisplay).split(' ')[0]}
           </span>
         </div>
 
@@ -167,7 +192,7 @@ export default function HomePage() {
             marginBottom: 8,
           }}
         >
-          {formatWater(savedDisplay || 897).split(' ')[1]} of water saved
+          {formatWater(savedDisplay).split(' ')[1]} of water saved
         </p>
 
         {/* Equivalent */}
@@ -180,7 +205,7 @@ export default function HomePage() {
           style={{
             width: 48,
             height: 1,
-            background: 'linear-gradient(90deg, transparent, rgba(56,189,248,0.5), transparent)',
+            background: 'linear-gradient(90deg, transparent, rgba(34,211,238,0.5), transparent)',
             marginBottom: 40,
           }}
         />
@@ -188,8 +213,8 @@ export default function HomePage() {
         {/* Secondary micro-stats */}
         <div style={{ display: 'flex', gap: 48, justifyContent: 'center', flexWrap: 'wrap' }}>
           {[
-            { value: stats?.usedMl ?? 1833, label: 'used on AI', color: '#64748b', isWater: true },
-            { value: 23, label: 'prompts to Google', color: '#64748b', isWater: false },
+            { value: stats?.usedMl ?? 0, label: 'used on AI', color: '#64748b', isWater: true },
+            { value: stats?.googleRedirects ?? 0, label: 'prompts to Google', color: '#64748b', isWater: false },
           ].map((s) => (
             <div key={s.label} style={{ textAlign: 'center' }}>
               <p style={{ fontSize: 22, fontWeight: 700, color: s.color, marginBottom: 2 }}>
@@ -254,6 +279,8 @@ export default function HomePage() {
           maxWidth: 800,
           margin: '0 auto',
           width: '100%',
+          position: 'relative',
+          zIndex: 2,
         }}
       >
         {[
@@ -276,8 +303,9 @@ export default function HomePage() {
           <div
             key={card.title}
             style={{
-              background: 'rgba(255,255,255,0.025)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(11,22,40,0.6)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: 14,
               padding: '24px 20px',
             }}

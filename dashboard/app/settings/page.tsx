@@ -55,8 +55,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         width: 44,
         height: 24,
         borderRadius: 12,
-        background: checked ? 'linear-gradient(135deg,#0ea5e9,#0284c7)' : 'rgba(255,255,255,0.1)',
-        boxShadow: checked ? '0 0 10px rgba(14,165,233,0.35)' : 'none',
+        background: checked ? 'linear-gradient(135deg,#22d3ee,#0891b2)' : 'rgba(255,255,255,0.1)',
+        boxShadow: checked ? '0 0 10px rgba(34,211,238,0.35)' : 'none',
         border: 'none',
         cursor: 'pointer',
         position: 'relative',
@@ -294,7 +294,7 @@ export default function SettingsPage() {
       <div style={{ maxWidth: 540 }}>
         {/* ── Features ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<Droplets size={14} style={{ color: '#38bdf8' }} />} label="Features" />
+          <SectionTitle icon={<Droplets size={14} style={{ color: '#5eead4' }} />} label="Features" />
           <SettingRow
             icon={<Droplets size={16} />}
             label="Water Awareness"
@@ -316,6 +316,13 @@ export default function SettingsPage() {
             checked={settings.autoOpenDashboard}
             onChange={(v) => update({ ...settings, autoOpenDashboard: v })}
           />
+          <SettingRow
+            icon={<Droplets size={16} />}
+            label="Hide AI Overview"
+            sub="Append &udm=14 to Google searches for web-only results"
+            checked={settings.hideAIOverview}
+            onChange={(v) => update({ ...settings, hideAIOverview: v })}
+          />
         </div>
 
         {/* ── Sites ── */}
@@ -335,7 +342,7 @@ export default function SettingsPage() {
 
         {/* ── Monthly Goal ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<Droplets size={14} style={{ color: '#38bdf8' }} />} label="Monthly Water Saving Goal" />
+          <SectionTitle icon={<Droplets size={14} style={{ color: '#5eead4' }} />} label="Monthly Water Saving Goal" />
           <p style={{ fontSize: 12, color: '#475569', marginBottom: 12 }}>
             How much water (mL) do you want to save this month by using Google instead?
           </p>
@@ -363,23 +370,23 @@ export default function SettingsPage() {
               onClick={handleGoalSave}
               style={{
                 padding: '10px 18px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                background: 'linear-gradient(135deg,#0ea5e9,#0284c7)',
+                background: 'linear-gradient(135deg,#22d3ee,#0891b2)',
                 color: 'white', border: 'none', cursor: 'pointer', flexShrink: 0,
-                boxShadow: '0 3px 10px rgba(14,165,233,0.3)',
+                boxShadow: '0 3px 10px rgba(34,211,238,0.3)',
               }}
             >
               Save
             </button>
           </div>
           <p style={{ fontSize: 11, color: '#334155', marginTop: 8 }}>
-            Current: <span style={{ color: '#38bdf8' }}>{formatWater(settings.monthlyGoalMl)}</span>
+            Current: <span style={{ color: '#5eead4' }}>{formatWater(settings.monthlyGoalMl)}</span>
             {' '}≈ {(settings.monthlyGoalMl / 240).toFixed(1)} cups
           </p>
         </div>
 
         {/* ── Preferred Search Engine ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<ExternalLink size={14} style={{ color: '#0ea5e9' }} />} label="Preferred Search Engine" />
+          <SectionTitle icon={<ExternalLink size={14} style={{ color: '#22d3ee' }} />} label="Preferred Search Engine" />
           <p style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
             Choose where to redirect prompts when you click "Google It".
           </p>
@@ -394,7 +401,7 @@ export default function SettingsPage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
                   background: 'rgba(255,255,255,0.02)', borderRadius: 10, cursor: 'pointer',
-                  border: settings.preferredBrowser.type === option.id ? '1px solid rgba(14,165,233,0.3)' : '1px solid transparent',
+                  border: settings.preferredBrowser.type === option.id ? '1px solid rgba(34,211,238,0.3)' : '1px solid transparent',
                   transition: 'all 0.2s ease',
                 }}
               >
@@ -403,7 +410,7 @@ export default function SettingsPage() {
                   name="browserPref"
                   checked={settings.preferredBrowser.type === option.id}
                   onChange={() => update({ ...settings, preferredBrowser: { ...settings.preferredBrowser, type: option.id as any } })}
-                  style={{ accentColor: '#0ea5e9', cursor: 'pointer' }}
+                  style={{ accentColor: '#22d3ee', cursor: 'pointer' }}
                 />
                 <span style={{ fontSize: 16 }}>{option.icon}</span>
                 <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{option.label}</span>

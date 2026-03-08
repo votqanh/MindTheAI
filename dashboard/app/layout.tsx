@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
         <Sidebar />
         {/* Page content offset by sidebar width */}
-        <div style={{ marginLeft: '220px', minHeight: '100vh' }}>
+        <div style={{ marginLeft: '240px', minHeight: '100vh' }}>
           {children}
         </div>
       </body>

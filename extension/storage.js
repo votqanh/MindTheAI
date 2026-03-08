@@ -34,6 +34,7 @@ const DEFAULT_SETTINGS = {
   },
   preferredBrowser: { type: 'google' },
   autoOpenDashboard: false,
+  hideAIOverview: false,
 };
 
 async function getStats() {

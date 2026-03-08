@@ -15,6 +15,8 @@
   let bannerVisible = false;
   let popupDismissedForSession = false;
   let hideTimer = null;
+  let bannerWasShown = false;  // tracks if banner appeared this session
+  let promptHadContent = false; // tracks if input had content before clearing
 
   function countWords(text) {
     return text.trim().split(/\s+/).filter(Boolean).length;
@@ -34,6 +36,30 @@
     }
     bannerVisible = false;
     clearTimeout(hideTimer);
+  }
+
+  /**
+   * Detect prompt submission: listen for Enter key (without Shift).
+   * When the user presses Enter to send, count as AI usage.
+   */
+  let submitTrackedThisCycle = false;
+
+  function attachSubmitDetection(inputEl) {
+    if (inputEl._mindtheaiSubmitAttached) return;
+    inputEl._mindtheaiSubmitAttached = true;
+
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const text = getPromptText(inputEl);
+        if (text.trim()) {
+          // User is submitting a prompt to the AI — count as water used
+          window.MindTheAI_Storage.incrementWater({ used: true });
+          submitTrackedThisCycle = true;
+          // Remove banner if it was showing
+          removeBanner();
+        }
+      }
+    });
   }
 
   async function showBanner(inputEl) {
@@ -125,6 +151,11 @@
               : `${latestPref.customUrl}?q=${encodeURIComponent(text.trim())}`;
           }
 
+          // Append &udm=14 to Google URLs when hideAIOverview is enabled
+          if (s.hideAIOverview && latestPref.type === 'google') {
+            url += '&udm=14';
+          }
+
           window.open(url, '_blank');
         });
       }
@@ -153,19 +184,36 @@
   }
 
   function handleInput(inputEl) {
+    // Attach submit detection on first encounter
+    attachSubmitDetection(inputEl);
+
     const text = getPromptText(inputEl);
     const wordCount = countWords(text);
+
+    if (wordCount > 0) {
+      promptHadContent = true;
+    }
 
     if (wordCount > 0 && wordCount <= WORD_THRESHOLD) {
       if (!bannerVisible && !popupDismissedForSession) {
         showBanner(inputEl);
+        bannerWasShown = true;
       }
     } else if (wordCount > WORD_THRESHOLD) {
       // User passed threshold — they're committed, hide the banner
       removeBanner();
-    } else if (wordCount === 0) {
-      // Field cleared (new prompt)
+    } else if (wordCount === 0 && promptHadContent) {
+      // Field cleared after having content (prompt was submitted)
+      // If banner was showing but user didn't interact, count as AI usage
+      // (Enter key detection handles the primary tracking, this is a fallback
+      //  for send-button clicks where Enter wasn't pressed)
+      if (!submitTrackedThisCycle && bannerWasShown && bannerVisible) {
+        window.MindTheAI_Storage.incrementWater({ used: true });
+      }
       removeBanner();
+      promptHadContent = false;
+      bannerWasShown = false;
+      submitTrackedThisCycle = false;
     }
   }
 
@@ -173,6 +221,8 @@
     handleInput,
     resetSession() {
       popupDismissedForSession = false;
+      bannerWasShown = false;
+      promptHadContent = false;
       removeBanner();
     },
   };

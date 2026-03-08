@@ -253,3 +253,141 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ────────── AI Overview Tooltip ────────── */
+.mindtheai-ai-overview-tooltip {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0 0 24px 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 2147483645;
+}
+
+.mindtheai-aio-inner {
+  background: rgba(14, 22, 40, 0.97);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(56, 189, 248, 0.1);
+  backdrop-filter: blur(24px);
+  max-width: 480px;
+}
+
+.mindtheai-aio-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mindtheai-aio-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7));
+}
+
+.mindtheai-aio-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.mindtheai-aio-body {
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.mindtheai-aio-instructions {
+  font-size: 12px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mindtheai-aio-instructions strong {
+  color: #e2e8f0;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.mindtheai-aio-instructions ol {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.mindtheai-aio-instructions li {
+  margin-bottom: 3px;
+  line-height: 1.5;
+}
+
+.mindtheai-aio-instructions a {
+  color: #38bdf8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mindtheai-aio-instructions a:hover {
+  color: #7dd3fc;
+}
+
+.mindtheai-aio-instructions code {
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.mindtheai-aio-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mindtheai-aio-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mindtheai-aio-check:hover {
+  color: #94a3b8;
+}
+
+.mindtheai-aio-check input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #0ea5e9;
+  cursor: pointer;
+}
+
+.mindtheai-aio-btn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: white;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.35);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.mindtheai-aio-btn:hover {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.5);
+}

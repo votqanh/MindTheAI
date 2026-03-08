@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Main body gradient: deep teal → bright cyan -->
+    <linearGradient id="bodyGrad" x1="0.25" y1="0" x2="0.75" y2="1">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="40%" stop-color="#22d3ee"/>
+      <stop offset="75%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <!-- Internal refraction: lighter caustic shape -->
+    <radialGradient id="refractionGrad" cx="0.42" cy="0.55" r="0.40">
+      <stop offset="0%" stop-color="#a5f3fc" stop-opacity="0.45"/>
+      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0891b2" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Specular highlight (top-right shine) -->
+    <radialGradient id="specularGrad" cx="0.5" cy="0.3" r="0.35">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Bottom reflection -->
+    <linearGradient id="reflectionGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#a5f3fc" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#a5f3fc" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Shadow under the droplet -->
+    <radialGradient id="shadowGrad" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#0e7490" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0e7490" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Shadow ellipse -->
+  <ellipse cx="256" cy="468" rx="80" ry="14" fill="url(#shadowGrad)"/>
+
+  <!-- Main droplet body -->
+  <path d="M256 48 C256 48, 118 228, 118 330 C118 406, 180 456, 256 456 C332 456, 394 406, 394 330 C394 228, 256 48, 256 48Z" fill="url(#bodyGrad)"/>
+
+  <!-- Internal refraction / caustic -->
+  <path d="M256 100 C256 100, 148 248, 148 334 C148 394, 196 436, 256 436 C316 436, 364 394, 364 334 C364 248, 256 100, 256 100Z" fill="url(#refractionGrad)"/>
+
+  <!-- Specular highlight (top-right area) -->
+  <ellipse cx="290" cy="250" rx="42" ry="65" fill="url(#specularGrad)" transform="rotate(-20 290 250)"/>
+
+  <!-- Small bright accent dot -->
+  <ellipse cx="300" cy="220" rx="8" ry="10" fill="white" opacity="0.7" transform="rotate(-20 300 220)"/>
+
+  <!-- Bottom reflection curve -->
+  <ellipse cx="256" cy="420" rx="55" ry="18" fill="url(#reflectionGrad)" transform="rotate(2 256 420)"/>
+</svg>

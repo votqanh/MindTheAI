@@ -50,6 +50,7 @@ export interface Settings {
     customUrl?: string;
   };
   autoOpenDashboard: boolean;
+  hideAIOverview: boolean;
 }
 
 export interface AllStats {
@@ -82,26 +83,7 @@ const DEFAULT_SETTINGS: Settings = {
     type: 'google',
   },
   autoOpenDashboard: false,
-};
-
-const MOCK_DATA: AllStats = {
-  waterStats: {
-    aiPromptsCount: 47,
-    googleRedirects: 23,
-    waterUsedMl: 47 * 39,
-    waterSavedMl: 23 * 39,
-  },
-  privacyStats: {
-    detected: [
-      { type: 'phone', timestamp: Date.now() - 86400000, removed: true },
-      { type: 'email', timestamp: Date.now() - 72000000, removed: true },
-      { type: 'apikey', timestamp: Date.now() - 50000000, removed: false },
-      { type: 'phone', timestamp: Date.now() - 36000000, removed: true },
-      { type: 'address', timestamp: Date.now() - 20000000, removed: true },
-      { type: 'apikey', timestamp: Date.now() - 10000000, removed: true },
-    ],
-  },
-  settings: DEFAULT_SETTINGS,
+  hideAIOverview: false,
 };
 
 let messageCallbacks: Record<string, Function> = {};
@@ -186,8 +168,8 @@ export async function getAllStats(): Promise<AllStats> {
       const settings = JSON.parse(localStorage.getItem('mindtheai_settings') || 'null');
 
       return {
-        waterStats: waterStats || MOCK_DATA.waterStats,
-        privacyStats: privacyStats || MOCK_DATA.privacyStats,
+        waterStats: waterStats || { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0 },
+        privacyStats: privacyStats || { detected: [] },
         settings: { 
           ...DEFAULT_SETTINGS, 
           ...(settings || {}),
@@ -199,7 +181,11 @@ export async function getAllStats(): Promise<AllStats> {
     }
   }
 
-  return Promise.resolve(MOCK_DATA);
+  return Promise.resolve({
+    waterStats: { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0 },
+    privacyStats: { detected: [] },
+    settings: DEFAULT_SETTINGS,
+  });
 }
 
 export async function saveSettings(settings: Settings): Promise<void> {

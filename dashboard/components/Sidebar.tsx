@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Settings, Droplets } from 'lucide-react';
+import { BarChart3, Settings, Droplets, Home } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: Droplets },
+  { href: '/', label: 'Home', icon: Home },
   { href: '/insights', label: 'Insights', icon: BarChart3 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -17,71 +17,204 @@ export default function Sidebar() {
     <aside
       className="fixed left-0 top-0 h-screen flex flex-col"
       style={{
-        width: '240px',
-        background: 'rgba(6, 12, 28, 0.45)',
+        width: 240,
+        background: 'linear-gradient(180deg, rgba(11,22,40,0.97) 0%, rgba(11,22,40,0.99) 100%)',
         backdropFilter: 'blur(40px)',
-        borderRight: '1px solid rgba(255,255,255,0.03)',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
         zIndex: 50,
       }}
     >
-      {/* Logo Section */}
-      <div className="px-7 pt-12 pb-10 mb-20">
-        <Link href="/" className="flex items-center gap-5 group">
+      {/* ── Logo Section ── */}
+      <div
+        style={{
+          padding: '32px 24px 24px',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+        }}
+      >
+        <Link
+          href="/"
+          className="group"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            textDecoration: 'none',
+          }}
+        >
           <div
-            className="w-12 h-12 flex items-center justify-center transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 flex-shrink-0"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              background: 'rgba(34,211,238,0.08)',
+              border: '1px solid rgba(34,211,238,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              transition: 'all 0.3s ease',
+            }}
+            className="group-hover:scale-105"
           >
-            <img src="/logos/mindtheai_brand.svg" alt="MindTheAI Logo" width={44} height={44} />
+            <img
+              src="/water-logo.svg"
+              alt="MindTheAI"
+              width={22}
+              height={22}
+            />
           </div>
-          <div className="flex flex-col">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <span
-              className="font-black text-xl tracking-tight block leading-none text-white mb-1"
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                color: '#f1f5f9',
+                lineHeight: 1.2,
+              }}
             >
               MindTheAI
             </span>
-            <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-sky-400">
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase' as const,
+                color: '#22d3ee',
+                opacity: 0.8,
+              }}
+            >
               Responsible AI
             </span>
           </div>
         </Link>
       </div>
 
-      {/* Nav links */}
-      <nav className="flex-1 px-4 flex flex-col gap-10">
+      {/* ── Navigation ── */}
+      <nav
+        style={{
+          flex: 1,
+          padding: '20px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+        }}
+      >
+        <p
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.1em',
+            color: '#475569',
+            padding: '0 12px',
+            marginBottom: 8,
+          }}
+        >
+          Navigation
+        </p>
+
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-4 px-4 py-3 rounded-2xl text-base font-semibold transition-all duration-300 group"
               style={{
-                color: isActive ? '#f8fafc' : '#94a3b8',
-                background: isActive ? 'rgba(14,165,233,0.12)' : 'transparent',
-                boxShadow: isActive ? 'inset 0 0 20px rgba(14,165,233,0.1)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 14px',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? '#f1f5f9' : '#64748b',
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(34,211,238,0.12) 0%, rgba(94,234,212,0.06) 100%)'
+                  : 'transparent',
+                border: isActive
+                  ? '1px solid rgba(34,211,238,0.15)'
+                  : '1px solid transparent',
+                boxShadow: isActive
+                  ? '0 0 16px rgba(34,211,238,0.06)'
+                  : 'none',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                position: 'relative',
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                  e.currentTarget.style.color = '#94a3b8';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = '#64748b';
+                }
               }}
             >
-              <Icon
-                className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
-                style={{ color: isActive ? '#38bdf8' : '#64748b' }}
-              />
-              <span>{label}</span>
+              {/* Active indicator bar */}
               {isActive && (
                 <div
-                  className="ml-auto w-1.5 h-6 rounded-full"
-                  style={{ 
-                    background: '#0ea5e9',
-                    boxShadow: '0 0 12px rgba(14,165,233,0.8)' 
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 3,
+                    height: 20,
+                    borderRadius: '0 4px 4px 0',
+                    background: 'linear-gradient(180deg, #5eead4, #22d3ee)',
+                    boxShadow: '0 0 8px rgba(34,211,238,0.4)',
                   }}
                 />
               )}
+              <Icon
+                style={{
+                  width: 20,
+                  height: 20,
+                  flexShrink: 0,
+                  color: isActive ? '#22d3ee' : '#475569',
+                  transition: 'color 0.2s ease',
+                }}
+              />
+              <span>{label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer – version */}
-      <div className="px-8 py-8">
-        <p className="text-[10px] font-medium tracking-widest uppercase opacity-30" style={{ color: '#94a3b8' }}>v1.0 · MindTheAI</p>
+      {/* ── Footer ── */}
+      <div
+        style={{
+          padding: '16px 24px 20px',
+          borderTop: '1px solid rgba(255,255,255,0.04)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <Droplets style={{ width: 12, height: 12, color: '#22d3ee', opacity: 0.4 }} />
+          <p
+            style={{
+              fontSize: 10,
+              fontWeight: 500,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const,
+              color: '#334155',
+              margin: 0,
+            }}
+          >
+            v1.0 · MindTheAI
+          </p>
+        </div>
       </div>
     </aside>
   );

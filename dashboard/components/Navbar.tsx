@@ -26,12 +26,12 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="transition-all duration-300 group-hover:scale-110">
-            <img src="/logos/mindtheai_brand.svg" alt="MindTheAI Logo" width={36} height={36} />
+            <img src="/water-logo.svg" alt="MindTheAI Logo" width={36} height={36} />
           </div>
           <span
             className="font-bold text-lg tracking-tight"
             style={{
-              background: 'linear-gradient(135deg, #38bdf8, #ffffff)',
+              background: 'linear-gradient(135deg, #5eead4, #ffffff)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -51,9 +51,9 @@ export default function Navbar() {
                 href={href}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
                 style={{
-                  color: isActive ? '#38bdf8' : '#94a3b8',
-                  background: isActive ? 'rgba(56,189,248,0.1)' : 'transparent',
-                  border: isActive ? '1px solid rgba(56,189,248,0.2)' : '1px solid transparent',
+                  color: isActive ? '#22d3ee' : '#94a3b8',
+                  background: isActive ? 'rgba(34,211,238,0.1)' : 'transparent',
+                  border: isActive ? '1px solid rgba(34,211,238,0.2)' : '1px solid transparent',
                 }}
               >
                 <Icon className="w-4 h-4" />

@@ -23,6 +23,7 @@ chrome.runtime.onInstalled.addListener(() => {
           },
           preferredBrowser: { type: 'google' },
           autoOpenDashboard: false,
+          hideAIOverview: false,
         },
       });
     }
