@@ -36,8 +36,24 @@
     clearTimeout(hideTimer);
   }
 
-  function showBanner(inputEl) {
+  async function showBanner(inputEl) {
     if (bannerVisible || popupDismissedForSession) return;
+
+    // Fetch settings needed for button content before rendering
+    const settings = await window.MindTheAI_Storage.getSettings();
+    const pref = settings?.preferredBrowser || { type: 'google' };
+
+    let btnText = '🔍 Google it';
+    let btnTitle = 'Search Google instead';
+    if (pref.type === 'ecosia') {
+      btnText = '🌳 Ecosia it';
+      btnTitle = 'Search Ecosia instead';
+    } else if (pref.type === 'other') {
+      btnText = '🔗 Search it';
+      btnTitle = 'Search instead';
+    }
+
+    if (bannerVisible || popupDismissedForSession) return; // check again after await
     bannerVisible = true;
 
     // Remove any existing
@@ -52,28 +68,29 @@
         <div class="mindtheai-banner-left">
           <span class="mindtheai-banner-drop">💧</span>
           <div>
-            <p class="mindtheai-banner-title">Save <strong>${WATER_PER_PROMPT_ML} mL</strong> — could Google answer this?</p>
-            <p class="mindtheai-banner-sub">Up to ${WATER_PER_CONVO_ML} mL saved per conversation</p>
+            <p class="mindtheai-banner-title">Save <strong>${window.MindTheAI_Format.formatWater(WATER_PER_PROMPT_ML)}</strong> — could ${pref.type === 'google' ? 'Google' : 'Ecosia'} answer this?</p>
+            <p class="mindtheai-banner-sub">Up to ${window.MindTheAI_Format.formatWater(WATER_PER_CONVO_ML)} saved per conversation</p>
           </div>
         </div>
         <div class="mindtheai-banner-actions">
-          <button id="mindtheai-google-btn" title="Search Google instead">🔍 Google it</button>
-          <button id="mindtheai-dismiss-btn" title="Continue with AI">Continue</button>
+           <button id="mindtheai-google-btn" title="${btnTitle}">${btnText}</button>
+          <button id="mindtheai-dismiss-btn" title="No, don't remind me">No</button>
+          <label class="mindtheai-banner-check">
+            <input type="checkbox" id="mindtheai-no-remind-check" />
+            <span>Don't ask again</span>
+          </label>
           <button id="mindtheai-close-btn" title="Close">✕</button>
         </div>
       </div>
-      <label class="mindtheai-banner-check">
-        <input type="checkbox" id="mindtheai-no-remind-check" />
-        <span>Don't show again for this chat</span>
-      </label>
     `;
 
     // Position: above the input field, fixed
     banner.style.cssText = `
       position: fixed;
-      left: ${Math.max(8, inputRect.left)}px;
-      top: ${Math.max(8, inputRect.top - 90)}px;
-      width: ${Math.min(inputRect.width, window.innerWidth - 16)}px;
+      left: ${Math.max(16, inputRect.left)}px;
+      top: ${Math.max(16, inputRect.top - 100)}px;
+      width: auto;
+      max-width: ${window.innerWidth - 32}px;
       z-index: 2147483645;
       opacity: 0;
       transform: translateY(-8px);
@@ -89,12 +106,27 @@
       banner.style.transform = 'translateY(0)';
     });
 
-    // Google redirect
+    // Redirect button (Google/Ecosia/Custom)
     document.getElementById('mindtheai-google-btn').addEventListener('click', () => {
       const text = getPromptText(inputEl);
       if (text.trim()) {
         window.MindTheAI_Storage.incrementWater({ saved: true });
-        window.open(`https://www.google.com/search?q=${encodeURIComponent(text.trim())}`, '_blank');
+
+        chrome.storage.local.get('settings', (result) => {
+          const s = result.settings || {};
+          const latestPref = s.preferredBrowser || { type: 'google' };
+
+          let url = `https://www.google.com/search?q=${encodeURIComponent(text.trim())}`;
+          if (latestPref.type === 'ecosia') {
+            url = `https://www.ecosia.org/search?method=index&q=${encodeURIComponent(text.trim())}`;
+          } else if (latestPref.type === 'other' && latestPref.customUrl) {
+            url = latestPref.customUrl.includes('?')
+              ? `${latestPref.customUrl}${encodeURIComponent(text.trim())}`
+              : `${latestPref.customUrl}?q=${encodeURIComponent(text.trim())}`;
+          }
+
+          window.open(url, '_blank');
+        });
       }
       checkNoRemind();
       removeBanner();

@@ -27,14 +27,9 @@
       label: 'Email address',
       type: 'email',
     },
-    apikey: {
-      regex: /[A-Za-z0-9_\-]{20,}/g,
-      label: 'API key / Token',
-      type: 'apikey',
-      filter: (match) => !COMMON_WORDS.has(match.toLowerCase()),
-    },
     address: {
-      regex: /\d+\s[\w\s]{2,30}(?:street|st|ave|avenue|road|rd|blvd|boulevard|ln|lane|dr|drive|court|ct|way|place|pl|circle|cr)[\s,]+[\w\s]{2,30}(?:\d{5}(?:-\d{4})?)?/gi,
+      // More robust address regex: Number + Street Name + Suffix + Optional Suite + Optional City/State/Zip
+      regex: /\d{1,5}\s+[A-Z\d][a-z\d\s.-]{2,30}\s+(?:street|st|ave|avenue|road|rd|blvd|boulevard|ln|lane|dr|drive|court|ct|way|place|pl|circle|cr|sq|square|loop|trail)(?:\s+(?:apt|suite|ste|unit|box|#)\s*\d+[a-z]?)?[\s,]+(?:[A-Z][a-z\s.-]{2,20}[\s,]+)?(?:[A-Z]{2}\s+)?\d{5}(?:-\d{4})?/gi,
       label: 'Address',
       type: 'address',
     },
@@ -56,34 +51,55 @@
     } catch { return; }
 
     const op = settings?.onePassword;
-    if (!op?.enabled || !op.connectUrl || !op.accessToken || !op.vaultId) return;
+    if (!op?.enabled || !op.vaultId) return;
 
     try {
-      const base = op.connectUrl.replace(/\/$/, '');
-      const res = await fetch(`${base}/v1/vaults/${op.vaultId}/items`, {
-        headers: { Authorization: `Bearer ${op.accessToken}` },
-      });
-      if (!res.ok) return;
-      const items = await res.json();
-      const creds = [];
-      for (const item of items) {
-        if (!item.id) continue;
-        try {
-          const detail = await fetch(`${base}/v1/vaults/${op.vaultId}/items/${item.id}`, {
-            headers: { Authorization: `Bearer ${op.accessToken}` },
-          });
-          if (!detail.ok) continue;
-          const data = await detail.json();
-          for (const field of data.fields || []) {
-            if (field.value && field.value.length >= 6) {
-              creds.push({ name: item.title || 'Vault item', value: field.value });
+      if (op.authMode === 'service-account') {
+        if (!op.serviceAccountToken) return;
+        
+        // Delegate fetch to background script to avoid Mixed Content / CSP issues on HTTPS AI sites
+        const response = await new Promise((resolve) => {
+          chrome.runtime.sendMessage({
+            type: 'FETCH_1PASSWORD_SERVICE_ACCOUNT',
+            payload: {
+              serviceAccountToken: op.serviceAccountToken,
+              vaultId: op.vaultId
             }
-          }
-        } catch { /* skip individual item errors */ }
+          }, resolve);
+        });
+
+        if (response && response.success && Array.isArray(response.data)) {
+          vaultCredentials = response.data;
+        } else {
+          return;
+        }
+      } else {
+        // Legacy Connect Server mode
+        if (!op.connectUrl || !op.accessToken) return;
+        
+        // Also delegate Connect server fetch to background to avoid Mixed Content / CSP
+        const response = await new Promise((resolve) => {
+          chrome.runtime.sendMessage({
+            type: 'FETCH_1PASSWORD_CONNECT',
+            payload: {
+              connectUrl: op.connectUrl,
+              accessToken: op.accessToken,
+              vaultId: op.vaultId
+            }
+          }, resolve);
+        });
+
+        if (response && response.success && Array.isArray(response.data)) {
+          vaultCredentials = response.data;
+        } else {
+          return;
+        }
       }
-      vaultCredentials = creds;
       vaultCacheExpiry = Date.now() + 5 * 60 * 1000; // 5 min cache
-    } catch { /* network error – silently skip */ }
+    } catch (e) { 
+      /* network error – silently skip */ 
+      console.warn("fetchVaultCredentials error", e);
+    }
   }
 
   function detectVaultMatches(text) {
@@ -152,7 +168,8 @@
     activeTooltips.clear();
   }
 
-  function getMirrorId(inputEl) {
+  const TOOLTIP_ID_PREFIX = 'mindtheai-tooltip-';
+function getMirrorId(inputEl) {
     if (!inputEl.dataset.mindtheaiId) {
       inputEl.dataset.mindtheaiId = MIRROR_ID_PREFIX + Math.random().toString(36).slice(2);
     }
@@ -170,22 +187,40 @@
     tooltip.innerHTML = `
       <div class="mindtheai-tooltip-inner">
         <span class="mindtheai-tooltip-icon">⚠️</span>
-        <span class="mindtheai-tooltip-text"><strong>${match.label}</strong> detected. Share with AI?</span>
+        <span class="mindtheai-tooltip-text"><strong>${match.label}</strong> detected. Keep it?</span>
         <div class="mindtheai-tooltip-btns">
-          <button class="mindtheai-tip-yes">Yes</button>
-          <button class="mindtheai-tip-no">No, remove it</button>
+          <button class="mindtheai-tip-yes">Keep</button>
+          <button class="mindtheai-tip-no">Remove</button>
         </div>
       </div>
     `;
 
     // Position above the highlight
     tooltip.style.position = 'fixed';
+    
+    // Position significantly above to avoid any overlap with the text line
+    const safeTop = rect.top - 110; 
+    
     tooltip.style.left = `${rect.left}px`;
-    tooltip.style.top = `${rect.top - 75}px`;
+    tooltip.style.top = `${safeTop}px`;
     tooltip.style.zIndex = '2147483646';
 
     document.body.appendChild(tooltip);
     activeTooltips.set(match.start, tooltip);
+
+    // Click outside listener
+    const onOutsideClick = (e) => {
+      // Don't close if clicking the highlight itself or the tooltip
+      const isHighlight = e.target.closest('.' + HIGHLIGHT_CLASS);
+      const isTooltip = tooltip.contains(e.target);
+      
+      if (!isHighlight && !isTooltip) {
+        removeTooltip(match.start);
+        document.removeEventListener('click', onOutsideClick);
+      }
+    };
+    // Delay adding the listener to avoid the current click closing it immediately
+    setTimeout(() => document.addEventListener('click', onOutsideClick), 10);
 
     tooltip.querySelector('.mindtheai-tip-yes').addEventListener('click', () => {
       window.MindTheAI_Storage.recordPrivacy({ type: match.type, removed: false });
@@ -202,10 +237,11 @@
   function removeTooltip(key) {
     const tip = activeTooltips.get(key);
     if (tip) {
-      tip.remove();
+      tip.classList.add('fade-out'); // Add CSS hook for smooth exit
+      setTimeout(() => tip.remove(), 150);
       activeTooltips.delete(key);
     }
-    // Also by DOM id
+    // Also by DOM id for redundancy
     const byId = document.getElementById(TOOLTIP_ID_PREFIX + key);
     if (byId) byId.remove();
   }
@@ -292,23 +328,29 @@
       const before = escapeHtml(text.slice(lastIndex, match.start));
       const highlighted = escapeHtml(match.value);
       html += before;
-      html += `<mark class="${HIGHLIGHT_CLASS}" data-type="${match.type}" data-start="${match.start}" style="background:rgba(239,68,68,0.35);color:transparent;border-radius:2px;">${highlighted}</mark>`;
+      html += `<mark class="${HIGHLIGHT_CLASS}" data-type="${match.type}" data-start="${match.start}" style="background:rgba(239,68,68,0.35);color:transparent;border-radius:2px;pointer-events:auto;cursor:pointer;">${highlighted}</mark>`;
       lastIndex = match.end;
     }
     html += escapeHtml(text.slice(lastIndex));
     mirror.innerHTML = html;
     container.appendChild(mirror);
 
-    // After rendering, position tooltips over the first mark of each match
+    // After rendering, ensure tooltips can be triggered on click
     requestAnimationFrame(() => {
       const marks = mirror.querySelectorAll('.' + HIGHLIGHT_CLASS);
       marks.forEach((mark) => {
-        const start = parseInt(mark.dataset.start, 10);
-        const match = matches.find((m) => m.start === start);
-        if (match) {
-          const markRect = mark.getBoundingClientRect();
-          showTooltip(inputEl, match, markRect, container);
-        }
+        mark.style.pointerEvents = 'auto';
+        mark.style.cursor = 'pointer';
+        mark.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const start = parseInt(mark.dataset.start, 10);
+          const match = matches.find((m) => m.start === start);
+          if (match) {
+            const markRect = mark.getBoundingClientRect();
+            showTooltip(inputEl, match, markRect, container);
+          }
+        };
       });
     });
   }

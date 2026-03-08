@@ -1,0 +1,23 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main Droplet Gradient -->
+  <defs>
+    <linearGradient id="dropletGradient" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Droplet Path -->
+  <path d="M12 2C12 2 4 10 4 15.5C4 19.9 7.6 23.5 12 23.5C16.4 23.5 20 19.9 20 15.5C20 10 12 2Z" fill="url(#dropletGradient)"/>
+  
+  <!-- Circuit Motif (Simplified for 24x24) -->
+  <path d="M12 7V11M9 10L12 11L15 10M8 14H10M14 14H16M12 11V15M10 18H14" stroke="white" stroke-width="1.2" stroke-linecap="round" opacity="0.6" style="filter:url(#glow)"/>
+  
+  <!-- Central Core / Eye Eye -->
+  <circle cx="12" cy="13" r="2.5" fill="white" fill-opacity="0.9" style="filter:url(#glow)"/>
+  <circle cx="12" cy="13" r="1.2" fill="#0369a1"/>
+</svg>

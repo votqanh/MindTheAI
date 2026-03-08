@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { waterStats, privacyStats } = await loadStats();
 
   // Water saved
-  document.getElementById('water-saved').textContent = `${waterStats.waterSavedMl} mL`;
+  document.getElementById('water-saved').textContent = window.MindTheAI_Format.formatWater(waterStats.waterSavedMl);
 
   // Privacy count (removed items only)
   const protectedCount = (privacyStats.detected || []).filter((d) => d.removed).length;
@@ -33,11 +33,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch {}
   }
 
+  // Auto-open toggle initialization
+  const { settings } = await loadStats();
+  const autoOpenCheck = document.getElementById('auto-open-toggle');
+  if (autoOpenCheck) {
+    autoOpenCheck.checked = !!settings.autoOpenDashboard;
+    autoOpenCheck.addEventListener('change', (e) => {
+      chrome.storage.local.get('settings', (result) => {
+        const updatedSettings = { ...result.settings, autoOpenDashboard: e.target.checked };
+        chrome.storage.local.set({ settings: updatedSettings }, () => {
+          chrome.runtime.sendMessage({ type: 'SETTINGS_UPDATED' });
+        });
+      });
+    });
+  }
+
   // Open dashboard
   document.getElementById('open-dashboard').addEventListener('click', () => {
-    // Open the dashboard Next.js app (or as extension page if bundled)
-    // For development: open localhost:3000
-    // For production: open the extension's dashboard page
-    chrome.tabs.create({ url: 'http://localhost:3000' });
+    chrome.tabs.create({ url: 'http://localhost:3001' });
   });
 });

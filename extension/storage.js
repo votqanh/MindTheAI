@@ -32,6 +32,8 @@ const DEFAULT_SETTINGS = {
     copilot: true,
     perplexity: true,
   },
+  preferredBrowser: { type: 'google' },
+  autoOpenDashboard: false,
 };
 
 async function getStats() {
@@ -42,7 +44,11 @@ async function getStats() {
         resolve({
           waterStats: result[StorageKeys.WATER_STATS] || DEFAULT_WATER_STATS,
           privacyStats: result[StorageKeys.PRIVACY_STATS] || DEFAULT_PRIVACY_STATS,
-          settings: result[StorageKeys.SETTINGS] || DEFAULT_SETTINGS,
+          settings: {
+            ...DEFAULT_SETTINGS,
+            ...(result[StorageKeys.SETTINGS] || {}),
+            preferredBrowser: (result[StorageKeys.SETTINGS] || {}).preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
+          },
         });
       }
     );
@@ -52,7 +58,12 @@ async function getStats() {
 async function getSettings() {
   return new Promise((resolve) => {
     chrome.storage.local.get(StorageKeys.SETTINGS, (result) => {
-      resolve(result[StorageKeys.SETTINGS] || DEFAULT_SETTINGS);
+      const s = result[StorageKeys.SETTINGS] || {};
+      resolve({
+        ...DEFAULT_SETTINGS,
+        ...s,
+        preferredBrowser: s.preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
+      });
     });
   });
 }

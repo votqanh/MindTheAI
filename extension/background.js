@@ -19,7 +19,10 @@ chrome.runtime.onInstalled.addListener(() => {
             grok: true,
             copilot: true,
             perplexity: true,
+            google: true,
           },
+          preferredBrowser: { type: 'google' },
+          autoOpenDashboard: false,
         },
       });
     }
@@ -44,5 +47,73 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse(result);
     });
     return true; // async
+  }
+  if (msg.type === 'FETCH_1PASSWORD_SERVICE_ACCOUNT') {
+    fetch('http://localhost:3001/api/1password/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msg.payload),
+    })
+      .then((res) => res.json())
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true; // async response
+  }
+  if (msg.type === 'FETCH_1PASSWORD_CONNECT') {
+    const { connectUrl, accessToken, vaultId } = msg.payload;
+    const base = connectUrl.replace(/\/$/, '');
+    
+    fetch(`${base}/v1/vaults/${vaultId}/items`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+      .then((res) => res.json())
+      .then(async (items) => {
+        if (!Array.isArray(items)) {
+          sendResponse({ success: false, error: 'Invalid response' });
+          return;
+        }
+        const creds = [];
+        for (const item of items) {
+          if (!item.id) continue;
+          try {
+            const detailRes = await fetch(`${base}/v1/vaults/${vaultId}/items/${item.id}`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (detailRes.ok) {
+              const data = await detailRes.json();
+              for (const field of data.fields || []) {
+                if (field.value && field.value.length >= 6) {
+                  creds.push({ name: item.title || 'Vault item', value: field.value });
+                }
+              }
+            }
+          } catch (e) { /* skip */ }
+        }
+        sendResponse({ success: true, data: creds });
+      })
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true; // async response
+  }
+});
+
+// Handle New Tab redirect
+chrome.tabs.onCreated.addListener((tab) => {
+  if (tab.pendingUrl === 'chrome://newtab/' || tab.url === 'chrome://newtab/') {
+    chrome.storage.local.get('settings', (result) => {
+      if (result.settings?.autoOpenDashboard) {
+        chrome.tabs.update(tab.id, { url: 'http://localhost:3001' });
+      }
+    });
+  }
+});
+
+// Also handle when a tab is updated to the newtab URL (e.g. typing it manually)
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url === 'chrome://newtab/') {
+    chrome.storage.local.get('settings', (result) => {
+      if (result.settings?.autoOpenDashboard) {
+        chrome.tabs.update(tabId, { url: 'http://localhost:3001' });
+      }
+    });
   }
 });
