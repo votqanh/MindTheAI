@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllStats, saveSettings, getDefaultSettings, type Settings, type OnePasswordSettings } from '@/lib/storage';
+import { getAllStats, saveSettings, saveAllStats, getDefaultSettings, type Settings, type OnePasswordSettings } from '@/lib/storage';
 import { formatWater } from '@/lib/format';
-import { Droplets, ShieldCheck, CheckCircle2, KeyRound, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { Droplets, ShieldCheck, CheckCircle2, KeyRound, Eye, EyeOff, ExternalLink, Download, Upload, Sprout } from 'lucide-react';
 
 const SITES = [
   {
@@ -55,8 +55,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         width: 44,
         height: 24,
         borderRadius: 12,
-        background: checked ? 'linear-gradient(135deg,#22d3ee,#0891b2)' : 'rgba(255,255,255,0.1)',
-        boxShadow: checked ? '0 0 10px rgba(34,211,238,0.35)' : 'none',
+        background: checked ? 'var(--accent)' : 'var(--border)',
+        boxShadow: checked ? '0 0 10px var(--accent-glow)' : 'none',
         border: 'none',
         cursor: 'pointer',
         position: 'relative',
@@ -87,7 +87,7 @@ function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string })
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
       {icon}
-      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569' }}>
+      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
         {label}
       </p>
     </div>
@@ -110,15 +110,16 @@ function SettingRow({ icon, label, sub, checked, onChange }: {
         justifyContent: 'space-between',
         padding: '12px 14px',
         borderRadius: 12,
-        background: 'rgba(255,255,255,0.03)',
+        background: 'var(--bg-secondary)',
+        border: '1px solid var(--border)',
         marginBottom: 6,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ color: '#475569', flexShrink: 0 }}>{icon}</div>
+        <div style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{icon}</div>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#cbd5e1', margin: 0 }}>{label}</p>
-          {sub && <p style={{ fontSize: 11, color: '#334155', margin: '2px 0 0' }}>{sub}</p>}
+          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>{label}</p>
+          {sub && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>{sub}</p>}
         </div>
       </div>
       <Toggle checked={checked} onChange={onChange} />
@@ -139,7 +140,7 @@ function FieldInput({ label, value, onChange, placeholder, type = 'text', hint }
   const isPassword = type === 'password';
   return (
     <div style={{ marginBottom: 12 }}>
-      <label style={{ fontSize: 11, color: '#475569', fontWeight: 500, display: 'block', marginBottom: 6 }}>
+      <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500, display: 'block', marginBottom: 6 }}>
         {label}
       </label>
       <div style={{ position: 'relative' }}>
@@ -153,9 +154,9 @@ function FieldInput({ label, value, onChange, placeholder, type = 'text', hint }
             padding: '10px 14px',
             paddingRight: isPassword ? 42 : 14,
             borderRadius: 10,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#e2e8f0',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-primary)',
             fontSize: 13,
             outline: 'none',
             fontFamily: 'inherit',
@@ -166,14 +167,14 @@ function FieldInput({ label, value, onChange, placeholder, type = 'text', hint }
             onClick={() => setVisible(!visible)}
             style={{
               position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', cursor: 'pointer', color: '#475569', padding: 0,
+              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0,
             }}
           >
             {visible ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
         )}
       </div>
-      {hint && <p style={{ fontSize: 11, color: '#334155', marginTop: 5 }}>{hint}</p>}
+      {hint && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>{hint}</p>}
     </div>
   );
 }
@@ -260,6 +261,44 @@ export default function SettingsPage() {
     }
   };
 
+  const handleExport = async () => {
+    const data = await getAllStats();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mindtheai-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (json.settings && json.waterStats && json.privacyStats) {
+          await saveAllStats(json);
+          setSettings(json.settings);
+          setGoalInput(String(json.settings.monthlyGoalMl));
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2000);
+          alert('Data imported successfully!');
+        } else {
+          alert('Invalid backup file format.');
+        }
+      } catch (err) {
+        alert('Error parsing backup file.');
+      }
+    };
+    reader.readAsText(file);
+    // Clear input
+    e.target.value = '';
+  };
+
   if (!settings) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -269,20 +308,25 @@ export default function SettingsPage() {
   }
 
   const sectionBox = {
-    background: 'rgba(255,255,255,0.025)',
-    border: '1px solid rgba(255,255,255,0.06)',
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
     borderRadius: 14,
     padding: '20px 18px',
     marginBottom: 16,
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '40px 32px 60px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'var(--bg-primary)',
+      padding: '40px 32px 60px',
+      color: 'var(--text-primary)'
+    }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Settings</h1>
-          <p style={{ fontSize: 12, color: '#475569', marginTop: 3 }}>Control how MindTheAI protects you</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Settings</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Control how MindTheAI protects you</p>
         </div>
         {saved && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#22c55e' }}>
@@ -292,9 +336,60 @@ export default function SettingsPage() {
       </div>
 
       <div style={{ maxWidth: 540 }}>
-        {/* ── Features ── */}
+        {/* ── Data Management ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<Droplets size={14} style={{ color: '#5eead4' }} />} label="Features" />
+          <SectionTitle icon={<Upload size={14} style={{ color: 'var(--text-secondary)' }} />} label="Data Management" />
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
+            Backup your stats and settings to a JSON file, or restore from a previous backup.
+          </p>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={handleExport}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+                color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
+              <Download size={16} /> Export Data
+            </button>
+            <label
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+                color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
+              <Upload size={16} /> Import Data
+              <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
+            </label>
+          </div>
+        </div>
+        {/* ── Features ── */}
+        {/* Squishy Sapling perched on the Features card */}
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            position: 'absolute',
+            top: -36,
+            right: -12,
+            width: 60,
+            height: 60,
+            zIndex: 10,
+            animation: 'squishBreathe 5s ease-in-out infinite',
+            pointerEvents: 'none',
+          }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes squishBreathe {
+                0%, 100% { transform: translateY(0) scaleY(1) scaleX(1); }
+                50%       { transform: translateY(-3px) scaleY(0.96) scaleX(1.04); }
+              }
+            ` }} />
+            <img src="/squishy-sapling.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
+          <div style={sectionBox}>
+          <SectionTitle icon={<Droplets size={14} style={{ color: 'var(--accent)' }} />} label="Features" />
           <SettingRow
             icon={<Droplets size={16} />}
             label="Water Awareness"
@@ -323,11 +418,19 @@ export default function SettingsPage() {
             checked={settings.hideAIOverview}
             onChange={(v) => update({ ...settings, hideAIOverview: v })}
           />
+          <SettingRow
+            icon={<Droplets size={16} />}
+            label="Pleasantry Detection"
+            sub="Save water by removing 'hi', 'thanks', etc. from prompts"
+            checked={settings.pleasantryCheckEnabled}
+            onChange={(v) => update({ ...settings, pleasantryCheckEnabled: v })}
+          />
+        </div>
         </div>
 
         {/* ── Sites ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<ShieldCheck size={14} style={{ color: '#a78bfa' }} />} label="Active Sites" />
+          <SectionTitle icon={<ShieldCheck size={14} style={{ color: 'var(--accent)' }} />} label="Active Sites" />
           {SITES.map(({ key, label, url, icon }) => (
             <SettingRow
               key={key}
@@ -342,8 +445,8 @@ export default function SettingsPage() {
 
         {/* ── Monthly Goal ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<Droplets size={14} style={{ color: '#5eead4' }} />} label="Monthly Water Saving Goal" />
-          <p style={{ fontSize: 12, color: '#475569', marginBottom: 12 }}>
+          <SectionTitle icon={<Droplets size={14} style={{ color: 'var(--accent)' }} />} label="Monthly Water Saving Goal" />
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
             How much water (mL) do you want to save this month by using Google instead?
           </p>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -356,13 +459,13 @@ export default function SettingsPage() {
                 placeholder="5000"
                 style={{
                   width: '100%', padding: '10px 46px 10px 14px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 10, color: '#e2e8f0', fontSize: 13,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10, color: 'var(--text-primary)', fontSize: 13,
                   outline: 'none', fontFamily: 'inherit',
                 }}
               />
-              <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#475569' }}>
+              <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--text-muted)' }}>
                 mL
               </span>
             </div>
@@ -370,24 +473,24 @@ export default function SettingsPage() {
               onClick={handleGoalSave}
               style={{
                 padding: '10px 18px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                background: 'linear-gradient(135deg,#22d3ee,#0891b2)',
+                background: 'var(--accent)',
                 color: 'white', border: 'none', cursor: 'pointer', flexShrink: 0,
-                boxShadow: '0 3px 10px rgba(34,211,238,0.3)',
+                boxShadow: '0 3px 10px var(--accent-glow)',
               }}
             >
               Save
             </button>
           </div>
-          <p style={{ fontSize: 11, color: '#334155', marginTop: 8 }}>
-            Current: <span style={{ color: '#5eead4' }}>{formatWater(settings.monthlyGoalMl)}</span>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+            Current: <span style={{ color: 'var(--accent)' }}>{formatWater(settings.monthlyGoalMl)}</span>
             {' '}≈ {(settings.monthlyGoalMl / 240).toFixed(1)} cups
           </p>
         </div>
 
         {/* ── Preferred Search Engine ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<ExternalLink size={14} style={{ color: '#22d3ee' }} />} label="Preferred Search Engine" />
-          <p style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
+          <SectionTitle icon={<ExternalLink size={14} style={{ color: 'var(--accent)' }} />} label="Preferred Search Engine" />
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
             Choose where to redirect prompts when you click "Google It".
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -400,8 +503,8 @@ export default function SettingsPage() {
                 key={option.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                  background: 'rgba(255,255,255,0.02)', borderRadius: 10, cursor: 'pointer',
-                  border: settings.preferredBrowser.type === option.id ? '1px solid rgba(34,211,238,0.3)' : '1px solid transparent',
+                  background: 'var(--bg-secondary)', borderRadius: 10, cursor: 'pointer',
+                  border: settings.preferredBrowser.type === option.id ? '1px solid var(--accent)' : '1px solid var(--border)',
                   transition: 'all 0.2s ease',
                 }}
               >
@@ -410,10 +513,10 @@ export default function SettingsPage() {
                   name="browserPref"
                   checked={settings.preferredBrowser.type === option.id}
                   onChange={() => update({ ...settings, preferredBrowser: { ...settings.preferredBrowser, type: option.id as any } })}
-                  style={{ accentColor: '#22d3ee', cursor: 'pointer' }}
+                   style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
                 />
-                <span style={{ fontSize: 16 }}>{option.icon}</span>
-                <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{option.label}</span>
+                 <span style={{ fontSize: 16 }}>{option.icon}</span>
+                 <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>{option.label}</span>
               </label>
             ))}
 
@@ -433,10 +536,10 @@ export default function SettingsPage() {
 
         {/* ── 1Password Vault ── */}
         <div style={sectionBox}>
-          <SectionTitle icon={<KeyRound size={14} style={{ color: '#f59e0b' }} />} label="1Password Vault" />
+          <SectionTitle icon={<KeyRound size={14} style={{ color: 'var(--warning)' }} />} label="1Password Vault Secrets" />
 
-          <p style={{ fontSize: 12, color: '#475569', marginBottom: 14, lineHeight: 1.6 }}>
-            Automatically detect vault credentials in AI prompts. Choose between a self-hosted <strong style={{ color: '#94a3b8' }}>Connect server</strong> or a direct <strong style={{ color: '#94a3b8' }}>Service Account</strong>.
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.6 }}>
+            Automatically detect vault credentials in AI prompts. Choose between a self-hosted <strong style={{ color: 'var(--text-secondary)' }}>Connect server</strong> or a direct <strong style={{ color: 'var(--text-secondary)' }}>Service Account</strong>.
           </p>
 
           {/* Enable toggle */}
@@ -461,9 +564,9 @@ export default function SettingsPage() {
                     onClick={() => setOP('authMode', m.id)}
                     style={{
                       flex: 1, padding: '8px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: settings.onePassword.authMode === m.id ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.03)',
-                      color: settings.onePassword.authMode === m.id ? '#f59e0b' : '#475569',
-                      border: settings.onePassword.authMode === m.id ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(255,255,255,0.05)',
+                      background: settings.onePassword.authMode === m.id ? 'var(--accent-glow)' : 'var(--bg-secondary)',
+                      color: settings.onePassword.authMode === m.id ? 'var(--accent)' : 'var(--text-muted)',
+                      border: settings.onePassword.authMode === m.id ? '1px solid var(--border-hover)' : '1px solid var(--border)',
                       cursor: 'pointer', transition: 'all 0.2s',
                     }}
                   >
@@ -516,9 +619,9 @@ export default function SettingsPage() {
                   disabled={opTestResult === 'loading'}
                   style={{
                     padding: '9px 16px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                    background: 'rgba(245,158,11,0.12)',
-                    border: '1px solid rgba(245,158,11,0.25)',
-                    color: '#f59e0b', cursor: 'pointer', fontFamily: 'inherit',
+                    background: 'var(--accent-glow)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--accent)', cursor: 'pointer', fontFamily: 'inherit',
                     opacity: opTestResult === 'loading' ? 0.6 : 1,
                   }}
                 >
@@ -539,6 +642,24 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Sapling Pixar character — bottom-right corner */}
+      <img
+        src="/sapling-pixar.png"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          width: 80,
+          height: 80,
+          objectFit: 'contain',
+          zIndex: 50,
+          pointerEvents: 'none',
+          animation: 'squishBreathe 5s ease-in-out infinite',
+        }}
+      />
     </div>
   );
 }

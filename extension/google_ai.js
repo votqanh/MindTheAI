@@ -71,11 +71,10 @@
           Consider disabling it to save more water!
         </p>
         <div class="mindtheai-aio-instructions">
-          <strong>How to disable:</strong>
+          <strong>How to disable AI Overviews:</strong>
           <ol>
-            <li>Go to <a href="https://myactivity.google.com/product/search" target="_blank" rel="noopener">Google Search Settings</a></li>
-            <li>Find <em>"AI Overview"</em> and turn it off</li>
-            <li>Or add <code>&udm=14</code> to search URLs for web-only results</li>
+            <li>Go to <a href="https://myactivity.google.com/product/search" target="_blank" rel="noopener">Google Search Settings</a> and turn it off</li>
+            <li><strong>Auto-hide:</strong> Go to your <a href="http://localhost:3001/settings" target="_blank" rel="noopener">MindTheAI Settings</a> to automatically append <code>&udm=14</code> to all Google searches.</li>
           </ol>
         </div>
         <div class="mindtheai-aio-actions">

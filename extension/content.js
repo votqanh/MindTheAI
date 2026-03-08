@@ -97,6 +97,9 @@
       if (settings?.waterCheckEnabled !== false) {
         window.MindTheAI_Water?.handleInput(inputEl);
       }
+      if (settings?.pleasantryCheckEnabled !== false) {
+        window.MindTheAI_Pleasantry?.handleInput(inputEl);
+      }
       debouncedPrivacy(inputEl);
     };
 
@@ -155,6 +158,11 @@
         window.MindTheAI_GoogleAI?.checkGoogleAI();
       }, 1500));
       observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // 3. Source Citation Check Initialization
+    if (isAIPlatform && isSiteEnabled()) {
+      window.MindTheAI_SourceCheck?.init();
     }
 
     chrome.runtime.onMessage.addListener((msg) => {

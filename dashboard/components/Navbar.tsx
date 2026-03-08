@@ -26,7 +26,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="transition-all duration-300 group-hover:scale-110">
-            <img src="/water-logo.svg" alt="MindTheAI Logo" width={36} height={36} />
+            <img src="/squishy-robot.png" alt="MindTheAI Logo" width={36} height={36} style={{ objectFit: 'contain' }} />
           </div>
           <span
             className="font-bold text-lg tracking-tight"

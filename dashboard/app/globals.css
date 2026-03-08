@@ -5,22 +5,40 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0b1628;
-  --bg-secondary: #0f1d32;
-  --bg-card: #111f36;
-  --bg-card-hover: #1a2d48;
-  --border: rgba(255,255,255,0.07);
-  --border-hover: rgba(34,211,238,0.3);
-  --text-primary: #f1f5f9;
+  --bg-primary: #080c14; /* Deeper charcoal/navy */
+  --bg-secondary: #0d1421;
+  --bg-card: rgba(13, 20, 33, 0.7);
+  --bg-card-hover: rgba(52, 211, 153, 0.08);
+  --border: rgba(255, 255, 255, 0.04);
+  --border-hover: rgba(52, 211, 153, 0.2);
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #475569;
-  --accent: #22d3ee;
-  --accent-glow: rgba(34,211,238,0.25);
+  --accent: #34d399; /* Emerald Green */
+  --accent-glow: rgba(52, 211, 153, 0.15);
   --water: #5eead4;
   --water-dark: #0891b2;
   --danger: #ef4444;
-  --success: #22c55e;
+  --success: #10b981;
   --warning: #f59e0b;
+  --overlay-bg: linear-gradient(180deg, rgba(8, 12, 20, 0.3) 0%, rgba(8, 12, 20, 0.5) 50%, rgba(8, 12, 20, 0.85) 100%);
+}
+
+.light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(16, 185, 129, 0.3);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --accent: #10b981;
+  --accent-glow: rgba(16, 185, 129, 0.1);
+  --water: #34d399;
+  --water-dark: #059669;
+  --overlay-bg: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.9) 100%);
 }
 
 * {
@@ -36,6 +54,7 @@ body {
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
 }
 

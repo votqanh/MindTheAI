@@ -32,13 +32,13 @@
         "https://www.perplexity.ai/*",
         "https://www.google.com/search*"
       ],
-      "js": ["format.js", "storage.js", "water.js", "privacy.js", "google_ai.js", "content.js"],
+      "js": ["format.js", "storage.js", "water.js", "pleasantry.js", "privacy.js", "google_ai.js", "source_check.js", "content.js"],
       "css": ["overlay.css"],
       "run_at": "document_idle"
     },
     {
       "matches": ["http://localhost:3001/*"],
-      "js": ["dashboard-bridge.js"],
+      "js": ["format.js", "storage.js", "dashboard-bridge.js"],
       "run_at": "document_idle"
     }
   ],

@@ -4,11 +4,18 @@
  * Now includes 1Password Connect settings.
  */
 
+export interface DailyHistory {
+  date: string; // ISO string YYYY-MM-DD
+  saved: number;
+  prompts: number;
+}
+
 export interface WaterStats {
   aiPromptsCount: number;
   googleRedirects: number;
   waterUsedMl: number;
   waterSavedMl: number;
+  dailyHistory: DailyHistory[];
 }
 
 export interface PrivacyEntry {
@@ -51,6 +58,8 @@ export interface Settings {
   };
   autoOpenDashboard: boolean;
   hideAIOverview: boolean;
+  pleasantryCheckEnabled: boolean;
+  theme: 'light' | 'dark';
 }
 
 export interface AllStats {
@@ -62,6 +71,7 @@ export interface AllStats {
 const DEFAULT_SETTINGS: Settings = {
   waterCheckEnabled: true,
   privacyCheckEnabled: true,
+  pleasantryCheckEnabled: true,
   monthlyGoalMl: 5000,
   sites: {
     chatgpt: true,
@@ -84,6 +94,7 @@ const DEFAULT_SETTINGS: Settings = {
   },
   autoOpenDashboard: false,
   hideAIOverview: false,
+  theme: 'dark',
 };
 
 let messageCallbacks: Record<string, Function> = {};
@@ -130,15 +141,30 @@ export async function getAllStats(): Promise<AllStats> {
       (window as any).chrome.storage.local.get(
         ['waterStats', 'privacyStats', 'settings'],
         (result: any) => {
-          const s = result.settings || {};
+          const s = result.settings;
+          const water = result.waterStats;
+          const privacy = result.privacyStats;
+
+          // Mirror to localStorage ONLY if data is "significant"
+          try {
+            const isSignificant = (water && (water.dailyHistory?.length > 0 || water.waterUsedMl > 0 || water.waterSavedMl > 0));
+            if (isSignificant) {
+              if (water) localStorage.setItem('mindtheai_water_stats', JSON.stringify(water));
+              if (privacy) localStorage.setItem('mindtheai_privacy_stats', JSON.stringify(privacy));
+            }
+            if (s) localStorage.setItem('mindtheai_settings', JSON.stringify(s));
+          } catch (e) {}
+
+          const settings = { 
+            ...DEFAULT_SETTINGS, 
+            ...(s || {}),
+            preferredBrowser: (s || {}).preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
+          };
+
           resolve({
-            waterStats: result.waterStats || { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0 },
-            privacyStats: result.privacyStats || { detected: [] },
-            settings: { 
-              ...DEFAULT_SETTINGS, 
-              ...s,
-              preferredBrowser: s.preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
-            },
+            waterStats: water || { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0, dailyHistory: [] },
+            privacyStats: privacy || { detected: [] },
+            settings,
           });
         }
       );
@@ -148,15 +174,49 @@ export async function getAllStats(): Promise<AllStats> {
   // Bridge usage (localhost dev with extension loaded)
   const extData = await sendToExtension('MINDTHEAI_GET_STATS');
   if (extData && extData.result) {
-    const s = extData.result.settings || {};
+    const s = extData.result.settings;
+    const water = extData.result.waterStats;
+    const privacy = extData.result.privacyStats;
+
+    // Mirror to localStorage for consistent web fallback (especially for refreshes)
+    if (typeof window !== 'undefined') {
+      try {
+        // Safeguard: Only mirror if data is "significant" to avoid wiping cache with empty results
+        const isSignificant = (water && (water.dailyHistory?.length > 0 || water.waterUsedMl > 0 || water.waterSavedMl > 0));
+        
+        if (isSignificant) {
+          if (water) localStorage.setItem('mindtheai_water_stats', JSON.stringify(water));
+          if (privacy) localStorage.setItem('mindtheai_privacy_stats', JSON.stringify(privacy));
+          if (s) localStorage.setItem('mindtheai_settings', JSON.stringify(s));
+        } else {
+          // If bridge data is NOT significant, try to load from localStorage as fallback
+          const cachedWater = JSON.parse(localStorage.getItem('mindtheai_water_stats') || 'null');
+          const cachedPrivacy = JSON.parse(localStorage.getItem('mindtheai_privacy_stats') || 'null');
+          if (cachedWater) {
+            return {
+              waterStats: cachedWater,
+              privacyStats: cachedPrivacy || { detected: [] },
+              settings: { 
+                ...DEFAULT_SETTINGS, 
+                ...(s || {}),
+                preferredBrowser: (s || {}).preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
+              }
+            };
+          }
+        }
+      } catch (e) {}
+    }
+
+    const settings = { 
+      ...DEFAULT_SETTINGS, 
+      ...(s || {}),
+      preferredBrowser: (s || {}).preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
+    };
+
     return {
-      waterStats: extData.result.waterStats || { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0 },
-      privacyStats: extData.result.privacyStats || { detected: [] },
-      settings: { 
-        ...DEFAULT_SETTINGS, 
-        ...s,
-        preferredBrowser: s.preferredBrowser || DEFAULT_SETTINGS.preferredBrowser
-      },
+      waterStats: water || { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0, dailyHistory: [] },
+      privacyStats: privacy || { detected: [] },
+      settings,
     };
   }
 
@@ -182,7 +242,7 @@ export async function getAllStats(): Promise<AllStats> {
   }
 
   return Promise.resolve({
-    waterStats: { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0 },
+    waterStats: { aiPromptsCount: 0, googleRedirects: 0, waterUsedMl: 0, waterSavedMl: 0, dailyHistory: [] },
     privacyStats: { detected: [] },
     settings: DEFAULT_SETTINGS,
   });
@@ -191,18 +251,48 @@ export async function getAllStats(): Promise<AllStats> {
 export async function saveSettings(settings: Settings): Promise<void> {
   if (isChromeAvailable()) {
     return new Promise((resolve) => {
-      (window as any).chrome.storage.local.set({ settings }, resolve);
+      (window as any).chrome.storage.local.set({ settings }, () => {
+        try {
+          localStorage.setItem('mindtheai_settings', JSON.stringify(settings));
+        } catch (e) {}
+        resolve();
+      });
     });
   }
 
   // Bridge push
-  const extData = await sendToExtension('MINDTHEAI_SAVE_SETTINGS', { settings });
-  // We no longer `return` here, so that we also mirror to localStorage
-  // This avoids confusing devs examining localStorage on localhost.
+  await sendToExtension('MINDTHEAI_SAVE_SETTINGS', { settings });
   
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem('mindtheai_settings', JSON.stringify(settings));
+    } catch (e) {
+      console.error('[MindTheAI] Failed to save to localStorage', e);
+    }
+  }
+}
+
+export async function saveAllStats(stats: AllStats): Promise<void> {
+  if (isChromeAvailable()) {
+    return new Promise((resolve) => {
+      (window as any).chrome.storage.local.set({
+        waterStats: stats.waterStats,
+        privacyStats: stats.privacyStats,
+        settings: stats.settings,
+      }, resolve);
+    });
+  }
+
+  // Bridge push (Bulk save isn't natively supported by the bridge yet, but we can do it via settings/stats individually if needed, 
+  // or just mirror to localStorage. For now, since the bridge handles the main extension storage, we'll try to push settings at least.)
+  await sendToExtension('MINDTHEAI_SAVE_SETTINGS', { settings: stats.settings });
+  // Note: Extension-side stats aren't easily "pushed" via the bridge for now, but usually dashboard is the source of truth for imports.
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('mindtheai_water_stats', JSON.stringify(stats.waterStats));
+      localStorage.setItem('mindtheai_privacy_stats', JSON.stringify(stats.privacyStats));
+      localStorage.setItem('mindtheai_settings', JSON.stringify(stats.settings));
     } catch (e) {
       console.error('[MindTheAI] Failed to save to localStorage', e);
     }

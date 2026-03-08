@@ -28,7 +28,7 @@
       type: 'email',
     },
     address: {
-      // More robust address regex: Number + Street Name + Suffix + Optional Suite + Optional City/State/Zip
+      // More robust address regex
       regex: /\d{1,5}\s+[A-Z\d][a-z\d\s.-]{2,30}\s+(?:street|st|ave|avenue|road|rd|blvd|boulevard|ln|lane|dr|drive|court|ct|way|place|pl|circle|cr|sq|square|loop|trail)(?:\s+(?:apt|suite|ste|unit|box|#)\s*\d+[a-z]?)?[\s,]+(?:[A-Z][a-z\s.-]{2,20}[\s,]+)?(?:[A-Z]{2}\s+)?\d{5}(?:-\d{4})?/gi,
       label: 'Address',
       type: 'address',
@@ -109,7 +109,7 @@
       if (idx !== -1) {
         matches.push({
           type: 'vault',
-          label: `Vault credential: "${cred.name}"`,
+          label: `1Password Vault Secret: "${cred.name}"`,
           value: cred.value,
           start: idx,
           end: idx + cred.value.length,

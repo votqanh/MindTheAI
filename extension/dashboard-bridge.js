@@ -8,9 +8,15 @@ window.addEventListener('message', (event) => {
   if (event.source !== window) return;
 
   if (event.data.type === 'MINDTHEAI_GET_STATS') {
-    chrome.storage.local.get(['waterStats', 'privacyStats', 'settings'], (result) => {
-      window.postMessage({ type: 'MINDTHEAI_STATS_RESULT', result, id: event.data.id }, '*');
-    });
+    if (window.MindTheAI_Storage) {
+      window.MindTheAI_Storage.getStats().then((result) => {
+        window.postMessage({ type: 'MINDTHEAI_STATS_RESULT', result, id: event.data.id }, '*');
+      });
+    } else {
+      chrome.storage.local.get(['waterStats', 'privacyStats', 'settings'], (result) => {
+        window.postMessage({ type: 'MINDTHEAI_STATS_RESULT', result, id: event.data.id }, '*');
+      });
+    }
   }
 
   if (event.data.type === 'MINDTHEAI_SAVE_SETTINGS') {

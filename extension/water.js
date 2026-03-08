@@ -30,9 +30,14 @@
   function removeBanner() {
     const el = document.getElementById(BANNER_ID);
     if (el) {
+      el.classList.add('mindtheai-removing');
       el.style.opacity = '0';
       el.style.transform = 'translateY(-8px)';
-      setTimeout(() => el?.remove(), 200);
+      setTimeout(() => {
+        el?.remove();
+        // Notify pleasantry banner to slide down
+        window.MindTheAI_Pleasantry?.updatePosition?.();
+      }, 200);
     }
     bannerVisible = false;
     clearTimeout(hideTimer);
@@ -79,13 +84,18 @@
       btnTitle = 'Search instead';
     }
 
-    if (bannerVisible || popupDismissedForSession) return; // check again after await
+    if (bannerVisible || popupDismissedForSession || document.getElementById(BANNER_ID)) return;
     bannerVisible = true;
 
     // Remove any existing
     document.getElementById(BANNER_ID)?.remove();
 
     const inputRect = inputEl.getBoundingClientRect();
+    const text = getPromptText(inputEl);
+    if (!text.trim()) {
+      bannerVisible = false;
+      return;
+    }
 
     const banner = document.createElement('div');
     banner.id = BANNER_ID;
@@ -111,20 +121,26 @@
     `;
 
     // Position: above the input field, fixed
+    // Water banner stays at the bottom of the stack
+    let offset = 80;
+
     banner.style.cssText = `
       position: fixed;
       left: ${Math.max(16, inputRect.left)}px;
-      top: ${Math.max(16, inputRect.top - 100)}px;
+      top: ${Math.max(16, inputRect.top - offset)}px;
       width: auto;
       max-width: ${window.innerWidth - 32}px;
       z-index: 2147483645;
       opacity: 0;
       transform: translateY(-8px);
-      transition: opacity 0.18s ease, transform 0.18s ease;
+      transition: opacity 0.18s ease, transform 0.18s ease, top 0.18s ease;
       pointer-events: auto;
     `;
 
     document.body.appendChild(banner);
+
+    // Notify pleasantry banner to move up
+    window.MindTheAI_Pleasantry?.updatePosition?.(inputEl);
 
     // Animate in
     requestAnimationFrame(() => {
