@@ -1,21 +1,17 @@
 # MindTheAI
 
-A privacy-focused browser extension and dashboard that helps you track and securely manage your sensitive data while interacting with AI tools.
+A Chrome browser extension to guide responsible AI use
+
+[🏆 1Password Best Security Hack @ cmd-f 2026](https://devpost.com/software/mindtheai)
+
+<img src="https://github.com/user-attachments/assets/f9bb154c-594c-4e72-92e3-22568f5c97b7" alt="Description" width="800"/>
 
 ## Features
-
-### Browser Extension
-- **Sensitive Data Detection**: Automatically detects and highlights sensitive information before it gets sent to AI models, including:
-  - Phone numbers
-  - Passwords, API keys, and tokens (6+ characters, non-dictionary words)
-  - 1Password vault items integration
-  - Physical addresses (postal codes, apartment/building numbers with street)
-  - Email addresses
-- **Upload Warnings**: Alerts you before uploading files that could be stored in external databases and potentially used as training data.
-
-### Web Dashboard
-- **Impact Tracking**: Monitor how much water (computational resources equivalent) you've saved by optimizing your AI queries.
-- **Privacy Analytics**: Track how many pieces of private information you've successfully intercepted and protected.
-
-## Data Privacy
-MindTheAI is built with privacy first. Your sensitive data detection happens locally, and your private information is never transmitted to our servers.
+* Banner on AI chat platforms prompting user to use Google for simple queries to save water 💧
+* Google AI Overview detection and instructions on how to disable it
+* Sensitive data detection including passwords (from 1Password vault), phone numbers, emails, etc
+* Pleasantries detection and removal - you don't need to be nice to AI, it costs "tens of millions of dollars"!
+* Unreliable social media source citation detection
+* Dashboard spotlighting cool metrics like liters of water saved, and useful AI tips - also available in dark mode 🌙
+* Customizable settings including allowlisted websites, preferred search engine, and more
+* All data is locally stored
